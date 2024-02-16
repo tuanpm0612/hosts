@@ -1,0 +1,329 @@
+* Xoa file Log cua Ubuntu
+rm -r /usr/bin/Logs/*.log
+* Xoa toan bo file ts m3u8
+rm -r /opt/share2box-drm/hls/*
+
+* Chay 5 kenh K+
+bash rek360.sh
+bash reKLive.sh
+* Xoa tung PID dang chay
+- Liet ke tat ca cac tien trinh dang chay
+ps aux | grep php
+- Xoa va tat PID
+kill PID
+- Xoa va tat PIP sinh ra tu file run1.php
+pkill -9 -f run1.php
+
+-- Mo Port 80 --
+sudo apt-get install ufw
+sudo ufw allow 80/tcp
+sudo ufw enable
+sudo ufw status
+sudo ufw reload
+
+-- Doi Port 18001 sang 21580 --
+sudo ufw allow 21580/tcp
+sudo ufw delete allow 18001/tcp
+sudo ss -tuln | grep 21580
+
+-- Cai dat ASP .NET ---
+wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+
+Cai dat .NET Core SDK
+sudo apt-get update
+sudo apt-get install -y apt-transport-https &&
+sudo apt-get update &&
+sudo apt-get install -y dotnet-sdk-5.0
+
+-- ASTRA Cesbo ---
+* Cai dat tai link, ban quyen 40 ngay: https://cesbo.com/en/latest/astra
+* Tao email: http://smailpro.com
+
+-- UBUNTU 20.04 --
+* Chay lenh sau de khoi tao mat khau cho tai khoan root:
+sudo passwd root
+* Dang nhap voi tai khoan root:
+su -
+
+1. -- Ung dung DRM PHP --- Bep Thoi Dai 4.0 ho tro
+* Tien hanh cai dat DRM PHP
+-- UBUNTU 18.04 --
+cd /home
+wget https://raw.githubusercontent.com/DRM-Scripts/DRMPHP/master/installer-beta.sh
+chmod 777 ./installer-beta.sh && sed -i -e 's/\r$//' installer-beta.sh && ./installer-beta.sh
+
+-- UBUNTU 20.04 --
+cd /home
+wget https://raw.githubusercontent.com/DRM-Scripts/DRMPHP/master/installer-beta_2004.sh
+chmod 777 ./installer-beta_2004.sh && sed -i -e 's/\r$//' installer-beta_2004.sh && ./installer-beta_2004.sh
+
+--- Moi Nhat T10/2023
+cd /home
+apt  install curl
+curl -sL https://raw.githubusercontent.com/DRM-Scripts/DRMPHP/master/installer.sh | bash
+
+---- Xoa cai dat DRM PHP ---
+sudo apt remove apache2
+sudo apt remove mysql-server
+sudo apt remove software-properties-common
+sudo apt remove git
+sudo apt remove php7.4 php7.4-cli php7.4-json php7.4-common php7.4-mysql php7.4-zip php7.4-gd php7.4-mbstring php7.4-curl php7.4-xml php7.4-bcmath php7.4-bz2 php7.4-xmlrpc
+
+Rm -r /home/DRMPHP
+
+2. -- Ung dung MPD-Player UI --- VThanhTivi ho tro
+truy cap link de cai dat ung dung
+https://github.com/DRM-Scripts/MPD-Player
+
+3----Share2Box DRM --- Bep Thoi Dai 4.0 ho tro
+a. # Install Depedencies
+sudo apt update
+sudo apt -y install software-properties-common
+sudo add-apt-repository ppa:ondrej/php
+sudo add-apt-repository ppa:linuxuprising/java
+sudo apt update
+
+
+b. # Install PHP AND NginX
+sudo apt -y install oracle-java17-installer
+sudo apt -y install php7.4-fpm
+sudo apt -y install php7.4-sqlite3
+sudo apt -y install php7.4-curl
+sudo apt -y install nginx
+sudo apt -y install unzip
+
+c. # Copy Files to Server
+wget https://github.com/DRM-Scripts/share2box/raw/master/share2box-drm.zip
+unzip /root/share2box-drm.zip -d /opt/share2box-drm
+
+d. # After Installation of Nginx
+mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+mv /opt/share2box-drm/nginx.conf /etc/nginx/nginx.conf
+
+e. # Restart Services
+sudo systemctl reload nginx
+sudo systemctl restart php7.4-fpm.service
+
+f. # Create Ramdisk
+mkdir /tmp/ramdisk
+chmod 777 /tmp/ramdisk
+mount -t tmpfs -o size=1024M tmpfs /tmp/ramdisk
+
+g. # Install FFMPEG
+wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+tar -xf ffmpeg-release-amd64-static.tar.xz
+
+- cp ffmpeg-5.1.1-amd64-static/ffmpeg /usr/bin
+- cp ffmpeg-6.0-amd64-static/ffmpeg /usr/bin
+
+h. # Set Permissions
+sudo chown www-data:www-data /opt/share2box-drm/channels_new.db
+chgrp www-data /opt/share2box-drm/channels_new.db
+chmod -R 777 /opt/
+
+i. # Start Service
+bash /opt/share2box-drm/shell/service.sh start
+
+j. # Add Cronjob
+@reboot nohup sh /opt/share2box-drm/shell/shell.events.sh > /dev/null &
+@reboot sh /opt/share2box-drm/shell/restartService.sh
+
+*** Neu bao loi thi cai dat them
+apt install systemd-sysv
+apt install molly-guard
+
+*. Fix Cronjob
+sudo apt update
+sudo apt install dnsutils
+
+* Sau khi cai dat hoan chinh, truy cap link
+http://localhost:18001 de su dung ControlPanel
+Cac Port can mo tren Modem de truy cap may tinh 8989, 18001
+
+4. -- Ung dung UNIVERSAL-DRM ---
+sudo apt update && sudo apt upgrade -y
+sudo apt-get install npm gcc g++ make ffmpeg build-essential zip unzip redis-server git aria2 -y
+sudo npm install --global yarn
+sudo npm install --global pm2
+cd /home
+git clone https://github.com/DRM-Scripts/Universal-DRM
+cd /Universal-DRM
+sudo npm install
+sudo chmod -R 777 /home/Universal-DRM/
+
+add username & password details where required in env example file (.env.example) & rename .env
+edit panel user name details and add whitelisted ips in (src/server.js)
+ips=line13 login details=line129 - (default details u=sinep p=sllab)
+pm2 --name Universal-DRM start npm -- start
+browse to http://ipofserver:3001/secret/start.html or http://ipofserver:3001/secret/index.html & login with details set
+for error logging run node src/server.js from inside Universal-DRM folder to see live logging
+
+5. -- MOVISTAR ---
+apt update
+apt install unzip
+apt install git
+cd /home
+wget https://github.com/DRM-Scripts/Movistar/wvtohls.zip
+unzip wvtohls.zip
+cd wvtohls/scripts && chmod 777 * && ./setup.sh && ./start_clean.sh && cd /home && chmod 777 -R 
+
+PANEL HOME: http://SERVER IP:18001/dashboard.php
+
+6. --- XUI 
+Download and install XUI one latest version (1.5.5) - https://update.xui.one/XUI_1.5.12.zip
+Download xui_crack.tar.gz - https://mega.nz/file/91l2xT7J#TmEZs5_y503LUJmaSVJ_6OWMR9sdsy-Soc63pB2GDB4
+Extract it using tar -xf xui_crack.tar.gz
+
+wget https://update.xui.one/XUI_1.5.12.zip
+unzip XUI_1.5.12.zip
+wget https://mega.nz/file/91l2xT7J#TmEZs5_y503LUJmaSVJ_6OWMR9sdsy-Soc63pB2GDB4
+tar -xf xui_crack.tar.gz
+
+Run install.sh Done!
+
+7. --- Cai dat Ubuntu tu dong Xoa bo nho dem trong 10 phut/lan ---
+- Tao file script
+nano clean_memory.sh
+- Go nguyen noi dung sau vao file
+#!/bin/bash
+sync
+echo 1 > /proc/sys/vm/drop_caches
+- Ctrl+X de thoat, sau do nhan Y luu lai
+- Phan quyen cho tap tin vua tao tren
+chmod +x clean_memory.sh
+- Chay lenh sau de mo tap tin cron
+crontab -e
+- go noi dung sau vao file, sau do luu lai: 10p se chay file clean_memory.sh
+*/10 * * * * /path/to/clean_memory.sh
+- 4h sang, khoi dong lai may tinh
+0 4 * * * /sbin/reboot
+
+8. ---- Chay lenh xoa bo nho dem cho Ubuntu ----
+- mo quyen root cua may
+su -
+- Xoa bo nho dem
+sync
+- Xo bo nho catch
+echo 1 > /proc/sys/vm/drop_caches
+
+-Chay file service.sh moi khi khoi dong lai may
+@reboot /bin/sleep 60 && /bin/bash /opt/share2box-drm/shell/service.sh start
+
+9. ---- Cai dat OpenSSH-Server
+- Cai dat:
+sudo apt update
+sudo apt install openssh-server
+- Kiem tra  trang thai OpenSSH qua lenh:
+sudo service ssh status
+
+10. --- Mo VNC port 22 de truy cap tu xa ---
+- Kiem tra SSH co dang chay hay chua:
+sudo service ssh status
+- Neu dich vu khong chay thi khoi dong no qua lenh
+sudo service ssh start
+- Kiem tra cong 22 da duoc mo hay chua qua lenh:
+sudo ufw status
+- Neu cong 22 chua mo (ALLOW), thi mo no qua lenh:
+sudo ufw allow 22
+- Xem IP cua Ubuntu qua lenh:
+ip addr show
+
+*** --------- Cach tao tai khoan root cho may Ubuntu -------
+- Kiem tra trang thai tai khoan root
+sudo passwd --status root
+- Neu tai khoan khong duoc khoa, va co dat password kiem tra tai khoan
+sudo grep root /etc/passwd
+
+- Kich hoat tai khoan root
+sudo -i
+passwd root
+
+- sua file /etc/nginx/nginx.conf
+sudo nano /etc/nginx/nginx.conf
+
+thay #PermitRootLogin prohibit-password bang
+PermitRootLogin yes
+
+Sau khi luu lai file tren, khoi dong lai SSH
+sudo service ssh restart
+*** ----------------
+
+11. ------ O11 OTT Streamer -----
+# Install Instrustions
+
+sudo apt-get update
+cd /home
+git clone https://github.com/DRM-Scripts/o11-OTT-Streamer
+cd o11-OTT-Streamer
+chmod 777 ./o11_streamer
+./o11_streamer
+
+# Dashboard
+http://serverip:1234
+
+12. ----- DAZN MINI_CS -----
+https://github.com/DRM-Scripts/DAZN/blob/master/mini_cs.zip
+Upload zip to /home and extract it after that run this command:
+
+sudo apt-get update
+cd /home
+wget https://github.com/DRM-Scripts/DAZN/blob/master/mini_cs.zip
+unzip mini_cs.zip
+
+* hinh thuc 1:
+cd /home/mini_cs/scripts && chmod 777 * && ./setup.sh && ./start_clean.sh && cd /home && chmod 777 -R *
+* Hinh thuc 2:
+cd /home/mini_cs/scripts
+chmod 777 *
+./setup.sh
+./start_clean.sh
+cd /home
+chmod 777 -R *
+
+if you get install errors like shared libs try:
+-apt-get install -y libxslt1-dev
+-apt-get update
+-apt install -y nscd
+-apt-get install -y libonig-dev
+-apt-get install -y libzip-dev
+-apt-get install -y aria2
+-apt install libcurl4-openssl-dev
+-apt install libcurl3 libcurl-openssl1.0-dev
+
+ ./start_clean.sh && cd /home && chmod 777 -R *
+ 
+ # Dashboard
+ http://SERVER IP:18001/dashboard.php
+ 
+ 13. -----------Cesbo Astra ---------
+ https://cesbo.com/en/latest/astra
+ 
+ 14. ---- streamlink-drm -----
+  * Cai dat git:
+sudo apt update
+sudo apt install unzip
+sudo apt install git
+ * Cai dat Python 3:
+sudo apt update
+sudo apt install python3
+ * kiem tra Python 3 co cai dat xong chua:
+python3 --version
+ 
+ * Cai dat PIP cho python 3:
+sudo apt install python3-pip
+ * Kiem tra Pip co cai chua:
+pip3 --version
+
+pip3 install --user -U git+https://github.com/ImAleeexx/streamlink-drm
+ * Su dung nhu sau:
+streamlink STREAMURL best
+ 
+ * Vi du:
+streamlink https://sglive.akamaized.net/bpk-tv/prod_kplus_sport1hd/default/i.mpd best -decryption_key 8551a53ece07341f7a77f9e90f9cbec7 -decryption_key_2 84b897852cc90c220226d67c7c2c859a --ffmpeg-fout "mpegts" --player-external-http --player-external-http-port 8002 &>/dev/null &
+
+streamlink https://sglive.akamaized.net/bpk-tv/prod_kplus_sport1hd/default/i.mpd best -decryption_key 8551a53ece07341f7a77f9e90f9cbec7 -decryption_key_2 84b897852cc90c220226d67c7c2c859a --ffmpeg-fout "mpegts" --player-external-http --player-external-http-port 8002
+
+15. Tvheadend
+https://github.com/tvheadend/tvheadend
+https://tvheadend.org/projects/tvheadend/wiki/AptRepositories
